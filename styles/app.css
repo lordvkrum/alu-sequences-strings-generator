@@ -1,0 +1,25 @@
+textarea {
+	resize: vertical;
+}
+
+.new-static-chain,
+.static-chains-table,
+.states-dictionary,
+.generate-chains-action,
+.advanced-settings {
+	padding-top: 20px;
+}
+
+.alert-files-and-states-connected {
+	margin-top: 20px;
+}
+
+.state {
+	width: 40px;
+	padding-right: 0;
+	padding-left: 0;
+}
+
+.state.state-connected {
+	padding: 0 12px;
+}
