@@ -1,0 +1,101 @@
+<template>
+<script type="text/javascript">
+if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+	alert('The File APIs are not fully supported in this browser.');
+}
+</script>
+<section>
+	<h2>${heading}</h2>
+	<form>
+		<div class="form-group new-static-chain">
+			<label for="newStaticChain">Add a static string:</label>
+			<textarea class="form-control" id="newStaticChain" rows="3" value.bind="newStaticChain" placeholder="New static string"></textarea>
+		</div>
+		<button type="button" class="btn btn-default" click.delegate="addNewStaticChain()">Add new static string</button>
+		<div class="form-group static-chains-table">
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th width="40px">#</th>
+						<th>Static Chain</th>
+						<th width="40px"></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr repeat.for="chain of staticChains">
+						<td>${$index + 1}</td>
+						<td>${chain}</td>
+						<td><i class="fa fa-trash-o" title="Remove static chain" click.delegate="removeStaticChain($index)"></i></td>
+					</tr>
+					<tr if.bind="!staticChains.length">
+						<td colspan="3">No statics strings will be added.</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="states-dictionary">
+			<div repeat.for="state of states" class.bind="files[state] ? 'form-group' : 'form-group alert alert-danger'">
+				<a name="${state + 'State'}"></a>
+				<label class="sr-only" for="${state + 'State'}">${state} state</label>
+				<div class="input-group">
+					<div class="input-group-addon state">${state}</div>
+					<input type="file" class="form-control" id="${state + 'State'}" accept=".txt" files.bind="files[state]" change.delegate="stateFileSelected(state)">
+					<div if.bind="statesConnected[state].length" class="input-group-addon">
+						<span>States connected:</span>
+						<span repeat.for="connected of statesConnected[state]" class="state state-connected">
+							<a href="#${connected + 'State'}">${connected}</a>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+	<div if.bind="showNoFilesAndStatesConnectedAlert" class="alert alert-danger alert-dismissible alert-files-and-states-connected" role="alert">
+		<button type="button" class="close" data-dismiss="alert" aria-label="Close" click.delegate="hideAlert()"><span aria-hidden="true">&times;</span></button>
+		<strong>Error!</strong> You must upload a file for each state to start generating strings.
+	</div>
+	<form class="form-inline generate-chains-action" submit.delegate="generateChains()">
+		<div class="form-group">
+			<label for="numberOfChains">Quantity of strings to generate:</label>
+			<input type="number" placeholder="Quantity of strings to generate" class="form-control" id="numberOfChains" value.bind="numberOfChains">
+		</div>
+		<button type="submit" class="btn btn-primary">Generate strings</button>
+	</form>
+	<form class="advanced-settings">
+		<button if.bind="!showAdvancedSettingsFlag" type="button" class="btn btn-primary" click.delegate="showAdvancedSettings()">Show advanced settings</button>
+		<button if.bind="showAdvancedSettingsFlag" type="button" class="btn btn-primary" click.delegate="hideAdvancedSettings()">Hide advanced settings</button>
+		<div if.bind="showAdvancedSettingsFlag">
+			<div class="form-group new-static-chain">
+				<label for="newToken">Add a token:</label>
+				<input type="text" class="form-control" id="newToken" value.bind="newToken" placeholder="New token">
+			</div>
+			<button type="button" class="btn btn-default" click.delegate="addNewToken()">Add new token</button>
+			<div class="form-group static-chains-table">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th width="40px">#</th>
+							<th>Token</th>
+							<th width="40px"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr repeat.for="token of tokens">
+							<td>${$index + 1}</td>
+							<td>${token}</td>
+							<td><i class="fa fa-trash-o" title="Remove token" click.delegate="removeToken($index)"></i></td>
+						</tr>
+						<tr if.bind="!tokens.length">
+							<td colspan="3">No tokens will be recognized.</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="form-group">
+				<label for="stateRegExp">RegExp for states:</label>
+				<input type="text" placeholder="RegExp for states" class="form-control" id="stateRegExp" value.bind="stateRegExp">
+			</div>
+		</div>
+	</form>
+</section>
+</template>
