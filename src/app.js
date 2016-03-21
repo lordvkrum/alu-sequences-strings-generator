@@ -59,7 +59,6 @@ export class App {
 				let canDeleteState = true;
 				for (let _state in this.statesConnections) {
 					if (state === _state) {
-						console.log('skip', _state);
 						continue;
 					}
 					for (let _connectedState of this.statesConnections[_state]) {
@@ -74,6 +73,7 @@ export class App {
 				}
 				if (canDeleteState) {
 					this.states.splice(this.states.indexOf(connectedState), 1);
+					delete this.files[connectedState];
 				}
 			}
 		}
