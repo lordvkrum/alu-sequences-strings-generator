@@ -8,7 +8,7 @@ export class App {
 	staticChains = [];
 	newStaticChain;
 	files = {};
-	statesConnected = {};
+	statesConnections = {};
 	states = ['S'];
 	lines = {};
 	sampleSize;
@@ -41,12 +41,12 @@ export class App {
 	stateFileSelected(state) {
 		this.showNoFilesAndStatesConnectedAlert = false;
 		var _this = this;
-		var file = this.files[state][0];
+		let file = this.files[state][0];
 		this.cleanStatesConnectedForState(state);
-		var reader = new FileReader();
+		let reader = new FileReader();
 		reader.onloadend = function(event) {
 			if (event.target.readyState == FileReader.DONE) {
-				var fileContent = event.target.result;
+				let fileContent = event.target.result;
 				_this.getStatesConnectedFromFile(state, fileContent);
 			}
 		};
@@ -54,26 +54,44 @@ export class App {
 	}
 
 	cleanStatesConnectedForState(state) {
-		if (this.statesConnected[state]) {
-			for (let s of this.statesConnected[state]) {
-				this.states.splice(this.states.indexOf(s), 1);
+		if (this.statesConnections[state]) {
+			for (let connectedState of this.statesConnections[state]) {
+				let canDeleteState = true;
+				for (let _state in this.statesConnections) {
+					if (state === _state) {
+						console.log('skip', _state);
+						continue;
+					}
+					for (let _connectedState of this.statesConnections[_state]) {
+						if (connectedState === _connectedState) {
+							canDeleteState = false;
+							break;
+						}
+					}
+					if (!canDeleteState) {
+						break;
+					}
+				}
+				if (canDeleteState) {
+					this.states.splice(this.states.indexOf(connectedState), 1);
+				}
 			}
 		}
-		this.statesConnected[state] = [];
+		this.statesConnections[state] = [];
 		this.lines[state] = [];
 	}
 
 	getStatesConnectedFromFile(state, fileContent) {
-		var fileLines = fileContent.split('\n');
-		var _states = {};
-		for (var i = 2; i < fileLines.length - 1; i++) {
+		let fileLines = fileContent.split('\n');
+		let states = {};
+		for (let i = 2; i < fileLines.length - 1; i++) {
 			this.lines[state].push(fileLines[i]);
-			var match = fileLines[i].match(new RegExp(this.stateRegExp, 'g'));
+			let match = fileLines[i].match(new RegExp(this.stateRegExp, 'g'));
 			if (match) {
 				for (let s of match) {
-					if (!_states[s]) {
-						_states[s] = true;
-						this.statesConnected[state].push(s);
+					if (!states[s]) {
+						states[s] = true;
+						this.statesConnections[state].push(s);
 						if (this.states.indexOf(s) === -1) {
 							this.states.push(s);
 						}
@@ -86,13 +104,15 @@ export class App {
 	generateChains() {
 		this.showNoFilesAndStatesConnectedAlert = !this.areFilesAndStatesConnected();
 		if (!this.showNoFilesAndStatesConnectedAlert) {
+			this.generatedChains = [];
 			this.randomizeSamples();
-			this._generateChains();
+			this.substituteStates();
+			this.exportFile();
 		}
 	}
 
 	areFilesAndStatesConnected() {
-		var canGenerate = true;
+		let canGenerate = true;
 		for (let state of this.states) {
 			if (!this.files[state]) {
 				canGenerate = false;
@@ -111,16 +131,16 @@ export class App {
 		this.sampleLines = {};
 		this.sampleSize = Math.ceil(Math.pow(this.numberOfChains || 1, 1 / (this.states.length || 1)));
 		for (let state of this.states) {
-			var _lines = {};
+			let lines = {};
 			this.originalSampleLines[state] = [];
 			this.sampleLines[state] = [];
 			while (this.sampleLines[state].length < this.sampleSize) {
-				var randomLine = Math.ceil(Math.random() * this.lines[state].length);
-				while (_lines[randomLine]) {
+				let randomLine = Math.ceil(Math.random() * this.lines[state].length);
+				while (lines[randomLine]) {
 					randomLine = Math.ceil(Math.random() * this.lines[state].length);
 				}
-				_lines[randomLine] = true;
-				var line = this.lines[state][randomLine];
+				lines[randomLine] = true;
+				let line = this.lines[state][randomLine];
 				this.originalSampleLines[state].push(line);
 				line = line.match(new RegExp('([' + this.tokens.join('|') + ']+(' + this.stateRegExp + ')*)+', 'g'));
 				this.sampleLines[state].push(line[0]);
@@ -128,13 +148,7 @@ export class App {
 		}
 	}
 
-	_generateChains() {
-		this.generatedChains = [];
-		this.substituteStates();
-		this.exportFile();
-	}
-
-	substituteStates(index, chain, state) {
+	substituteStates(index, result, state) {
 		index = index || 0;
 		state = state || 'S';
 		if (this.generatedChains.length >= this.numberOfChains) {
@@ -143,25 +157,25 @@ export class App {
 		if (index >= this.sampleLines[state].length) {
 			return;
 		}
-		var _chain = chain;
+		let _chain = result;
 		if (_chain) {
-			var regex = new RegExp(state, 'g');
+			let regex = new RegExp(state, 'g');
 			_chain = _chain.replace(regex, this.sampleLines[state][index]);
 		} else {
 			_chain = this.sampleLines[state][index];
 		}
-		var _states = _chain.match(new RegExp(this.stateRegExp, 'g'));
+		let _states = _chain.match(new RegExp(this.stateRegExp, 'g'));
 		if (_states) {
 			this.substituteStates(0, _chain, _states[0]);
 		} else {
 			this.generatedChains.push(_chain);
 		}
 		index++;
-		this.substituteStates(index, chain, state);
+		this.substituteStates(index, result, state);
 	}
 
 	exportFile() {
-		var content = '';
+		let content = '';
 		if (this.staticChains) {
 			for (let chain of this.staticChains) {
 				content += `${chain}\n`;
@@ -170,8 +184,8 @@ export class App {
 		for (let chain of this.generatedChains) {
 			content += `${chain}\n`;
 		}
-		var blob = new Blob([content]);
-		var event = document.createEvent('HTMLEvents');
+		let blob = new Blob([content]);
+		let event = document.createEvent('HTMLEvents');
 		event.initEvent('click');
 		$('<a>', {
 			download: 'generated-strings-' + (new Date()).toISOString() + '.txt',

@@ -40,9 +40,9 @@ if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
 				<div class="input-group">
 					<div class="input-group-addon state">${state}</div>
 					<input type="file" class="form-control" id="${state + 'State'}" accept=".txt" files.bind="files[state]" change.delegate="stateFileSelected(state)">
-					<div if.bind="statesConnected[state].length" class="input-group-addon">
+					<div if.bind="statesConnections[state].length" class="input-group-addon">
 						<span>States connected:</span>
-						<span repeat.for="connected of statesConnected[state]" class="state state-connected">
+						<span repeat.for="connected of statesConnections[state]" class="state state-connected">
 							<a href="#${connected + 'State'}">${connected}</a>
 						</span>
 					</div>
