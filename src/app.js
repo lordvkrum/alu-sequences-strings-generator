@@ -11,9 +11,6 @@ export class App {
 	statesConnections = {};
 	states = ['S'];
 	lines = {};
-	sampleSize;
-	originalSampleLines = {};
-	sampleLines = {};
 	generatedChains = [];
 
 	addNewStaticChain() {
@@ -105,7 +102,6 @@ export class App {
 		this.showNoFilesAndStatesConnectedAlert = !this.areFilesAndStatesConnected();
 		if (!this.showNoFilesAndStatesConnectedAlert) {
 			this.generatedChains = [];
-			this.randomizeSamples();
 			this.substituteStates();
 			this.exportFile();
 		}
@@ -126,52 +122,26 @@ export class App {
 		this.showNoFilesAndStatesConnectedAlert = false;
 	}
 
-	randomizeSamples() {
-		this.originalSampleLines = {};
-		this.sampleLines = {};
-		this.sampleSize = Math.ceil(Math.pow(this.numberOfChains || 1, 1 / (this.states.length || 1)));
-		for (let state of this.states) {
-			let lines = {};
-			this.originalSampleLines[state] = [];
-			this.sampleLines[state] = [];
-			while (this.sampleLines[state].length < this.sampleSize) {
-				let randomLine = Math.ceil(Math.random() * this.lines[state].length);
-				while (lines[randomLine]) {
-					randomLine = Math.ceil(Math.random() * this.lines[state].length);
-				}
-				lines[randomLine] = true;
-				let line = this.lines[state][randomLine];
-				this.originalSampleLines[state].push(line);
-				line = line.match(new RegExp('([' + this.tokens.join('|') + ']+(' + this.stateRegExp + ')*)+', 'g'));
-				this.sampleLines[state].push(line[0]);
-			}
-		}
-	}
-
-	substituteStates(index, result, state) {
-		index = index || 0;
+	substituteStates(result, state) {
 		state = state || 'S';
 		if (this.generatedChains.length >= this.numberOfChains) {
 			return;
 		}
-		if (index >= this.sampleLines[state].length) {
-			return;
-		}
-		let _chain = result;
-		if (_chain) {
-			let regex = new RegExp(state, 'g');
-			_chain = _chain.replace(regex, this.sampleLines[state][index]);
+		let randomLine = (Math.random() * this.lines[state].length) | 0;
+		let line = this.lines[state][randomLine];
+		line = line.match(new RegExp('([' + this.tokens.join('|') + ']+(' + this.stateRegExp + ')*)+', 'g'));
+		if (result) {
+			result = result.replace(new RegExp(state, 'g'), line[0]);
 		} else {
-			_chain = this.sampleLines[state][index];
+			result = line[0];
 		}
-		let _states = _chain.match(new RegExp(this.stateRegExp, 'g'));
-		if (_states) {
-			this.substituteStates(0, _chain, _states[0]);
+		let connectedStates = result.match(new RegExp(this.stateRegExp, 'g'));
+		if (connectedStates) {
+			this.substituteStates(result, connectedStates[0]);
 		} else {
-			this.generatedChains.push(_chain);
+			this.generatedChains.push(result);
 		}
-		index++;
-		this.substituteStates(index, result, state);
+		this.substituteStates();
 	}
 
 	exportFile() {
