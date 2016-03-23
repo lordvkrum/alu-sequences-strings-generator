@@ -102,7 +102,9 @@ export class App {
 		this.showNoFilesAndStatesConnectedAlert = !this.areFilesAndStatesConnected();
 		if (!this.showNoFilesAndStatesConnectedAlert) {
 			this.generatedChains = [];
-			this.substituteStates();
+			while (this.generatedChains.length < this.numberOfChains) {
+				this.substituteStates();
+			}
 			this.exportFile();
 		}
 	}
@@ -124,9 +126,6 @@ export class App {
 
 	substituteStates(result, state) {
 		state = state || 'S';
-		if (this.generatedChains.length >= this.numberOfChains) {
-			return;
-		}
 		let randomLine = (Math.random() * this.lines[state].length) | 0;
 		let line = this.lines[state][randomLine];
 		line = line.match(new RegExp('([' + this.tokens.join('|') + ']+(' + this.stateRegExp + ')*)+', 'g'));
@@ -141,7 +140,6 @@ export class App {
 		} else {
 			this.generatedChains.push(result);
 		}
-		this.substituteStates();
 	}
 
 	exportFile() {
